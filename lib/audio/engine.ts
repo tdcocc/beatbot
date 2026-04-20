@@ -7,9 +7,63 @@ import { TOTAL_STEPS, TRACK_ORDER, TrackId } from '../types';
 import { createVoice, Voice } from './instruments';
 
 let audioStarted = false;
+let silentAudio: HTMLAudioElement | null = null;
+
+// iOS Safari routes Web Audio through the "ambient" audio session by default,
+// which honors the physical silent/ring switch. Playing a looping silent
+// HTMLAudioElement inside the user gesture switches the session to "playback",
+// so Tone.js output is audible even with the ring switch flipped to silent.
+function createSilentAudio(): HTMLAudioElement {
+  const sampleRate = 8000;
+  const durationSec = 1;
+  const numSamples = sampleRate * durationSec;
+  const bufferSize = 44 + numSamples * 2;
+  const buffer = new ArrayBuffer(bufferSize);
+  const view = new DataView(buffer);
+  const writeAscii = (offset: number, s: string) => {
+    for (let i = 0; i < s.length; i++) view.setUint8(offset + i, s.charCodeAt(i));
+  };
+  writeAscii(0, 'RIFF');
+  view.setUint32(4, 36 + numSamples * 2, true);
+  writeAscii(8, 'WAVE');
+  writeAscii(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true); // PCM
+  view.setUint16(22, 1, true); // mono
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeAscii(36, 'data');
+  view.setUint32(40, numSamples * 2, true);
+  // Sample bytes are already zero = silence.
+
+  const blob = new Blob([buffer], { type: 'audio/wav' });
+  const audio = new Audio(URL.createObjectURL(blob));
+  audio.loop = true;
+  audio.preload = 'auto';
+  audio.setAttribute('playsinline', '');
+  audio.setAttribute('x-webkit-airplay', 'deny');
+  return audio;
+}
 
 export async function startAudio() {
   if (audioStarted) return;
+
+  // Kick off the silent-audio unlock synchronously, inside the user gesture.
+  // Safe no-op on browsers that don't need it.
+  if (typeof window !== 'undefined' && !silentAudio) {
+    try {
+      silentAudio = createSilentAudio();
+      // Fire-and-forget: we don't await, iOS just needs play() to have been
+      // called during the gesture. Errors here (e.g. autoplay policy) are
+      // non-fatal — Tone.start() below is the real audio unlock.
+      void silentAudio.play().catch(() => {});
+    } catch {
+      // Ignore; not critical.
+    }
+  }
+
   await Tone.start();
   audioStarted = true;
   if (typeof window !== 'undefined') {
