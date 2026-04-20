@@ -131,13 +131,17 @@ export function useAudioEngine() {
     const transport = Tone.getTransport();
     const seq = sequenceRef.current;
     if (!seq) return;
-    if (isPlaying) {
-      transport.position = 0;
-      seq.start(0);
-      transport.start();
-    } else {
-      transport.stop();
-      seq.stop();
+    try {
+      if (isPlaying) {
+        transport.position = 0;
+        seq.start(0);
+        transport.start();
+      } else {
+        seq.stop();
+        transport.stop();
+      }
+    } catch (err) {
+      console.error('[beatbot] transport toggle failed', err);
     }
   }, [isPlaying]);
 }
