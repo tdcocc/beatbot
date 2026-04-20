@@ -11,7 +11,7 @@ export function TrackRow({ track }: { track: Track }) {
 
   return (
     <div className="flex items-center border-t border-zinc-100">
-      <div className="flex w-16 shrink-0 items-center justify-center text-zinc-600">
+      <div className="sticky left-0 z-10 flex w-12 shrink-0 items-center justify-center bg-white text-zinc-600 sm:w-16 sm:bg-transparent">
         <TrackIcon id={track.id} />
       </div>
       <div

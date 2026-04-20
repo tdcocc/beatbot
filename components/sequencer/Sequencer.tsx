@@ -43,53 +43,57 @@ export function Sequencer() {
     <div className="w-full max-w-4xl overflow-hidden rounded-2xl border border-zinc-100 bg-gradient-to-b from-white to-zinc-50 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.15)]">
       <Transport />
 
-      <div className="flex text-[10px] uppercase tracking-widest text-zinc-400">
-        <div className="flex w-16 shrink-0 items-center justify-center py-1.5">
-          Tracks
-        </div>
-        <div
-          className="grid flex-1"
-          style={{
-            gridTemplateColumns: `repeat(${TOTAL_STEPS}, minmax(0, 1fr))`,
-          }}
-        >
-          {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-            <div
-              key={i}
-              className={`flex items-center justify-center py-1.5 ${
-                i > 0 && i % STEPS_PER_BAR === 0
-                  ? 'border-l border-zinc-200/70'
-                  : ''
-              }`}
-            >
-              {i % STEPS_PER_BAR === 0 ? i / STEPS_PER_BAR + 1 : ''}
+      <div className="overflow-x-auto">
+        <div className="min-w-[720px] sm:min-w-0">
+          <div className="flex text-[10px] uppercase tracking-widest text-zinc-400">
+            <div className="sticky left-0 z-20 flex w-12 shrink-0 items-center justify-center bg-white/95 py-1.5 backdrop-blur sm:w-16 sm:bg-transparent sm:backdrop-blur-none">
+              Tracks
             </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="relative">
-        {tracks.map((track) => (
-          <TrackRow key={track.id} track={track} />
-        ))}
-
-        {isPlaying && (
-          <div className="pointer-events-none absolute inset-y-0 left-16 right-0">
-            <motion.div
-              className="absolute inset-y-0 w-[2px] bg-rose-500/80"
-              animate={{
-                left: `${((currentStep + 0.5) / TOTAL_STEPS) * 100}%`,
+            <div
+              className="grid flex-1"
+              style={{
+                gridTemplateColumns: `repeat(${TOTAL_STEPS}, minmax(0, 1fr))`,
               }}
-              transition={{ type: 'tween', duration: 0.05, ease: 'linear' }}
-            />
+            >
+              {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`flex items-center justify-center py-1.5 ${
+                    i > 0 && i % STEPS_PER_BAR === 0
+                      ? 'border-l border-zinc-200/70'
+                      : ''
+                  }`}
+                >
+                  {i % STEPS_PER_BAR === 0 ? i / STEPS_PER_BAR + 1 : ''}
+                </div>
+              ))}
+            </div>
           </div>
-        )}
+
+          <div className="relative">
+            {tracks.map((track) => (
+              <TrackRow key={track.id} track={track} />
+            ))}
+
+            {isPlaying && (
+              <div className="pointer-events-none absolute inset-y-0 left-12 right-0 sm:left-16">
+                <motion.div
+                  className="absolute inset-y-0 w-[2px] bg-rose-500/80"
+                  animate={{
+                    left: `${((currentStep + 0.5) / TOTAL_STEPS) * 100}%`,
+                  }}
+                  transition={{ type: 'tween', duration: 0.05, ease: 'linear' }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="flex items-center border-t border-zinc-100">
         <button
           type="button"
-          className="flex h-11 w-16 shrink-0 items-center justify-center text-zinc-400 hover:text-zinc-700"
+          className="flex h-11 w-12 shrink-0 items-center justify-center text-zinc-400 hover:text-zinc-700 sm:w-16"
           aria-label="Add track (coming soon)"
           disabled
         >

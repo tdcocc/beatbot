@@ -119,11 +119,11 @@ export function Transport() {
   };
 
   return (
-    <div className="flex items-center justify-between px-5 py-4">
+    <div className="flex flex-wrap items-center justify-between gap-y-2 gap-x-3 px-3 py-3 sm:gap-x-0 sm:px-5 sm:py-4">
       <button
         type="button"
         onClick={handleTransport}
-        className="flex h-8 w-8 items-center justify-center rounded-md bg-rose-500 text-white shadow-sm transition-colors hover:bg-rose-600"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-rose-500 text-white shadow-sm transition-colors hover:bg-rose-600"
         aria-label={isPlaying ? 'Stop' : 'Play'}
       >
         {isPlaying ? (
@@ -133,12 +133,14 @@ export function Transport() {
         )}
       </button>
 
-      <div className="flex items-center gap-5 rounded-2xl bg-zinc-900 px-5 py-2 font-mono text-sm text-zinc-100 shadow-inner">
+      <div className="order-3 flex w-full items-center gap-3 rounded-2xl bg-zinc-900 px-3 py-2 font-mono text-sm text-zinc-100 shadow-inner sm:order-none sm:w-auto sm:gap-5 sm:px-5">
         <span className="tabular-nums tracking-wider">
           {formatTime(elapsed)}
         </span>
-        <Meter />
-        <div className="flex items-center gap-2">
+        <div className="hidden sm:flex">
+          <Meter />
+        </div>
+        <div className="ml-auto flex items-center gap-2 sm:ml-0">
           <span className="text-[10px] uppercase tracking-widest text-zinc-400">
             BPM
           </span>
