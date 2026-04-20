@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
+import { getClientIp, rateLimit } from '@/lib/rate-limit';
 
 const TRACK_IDS = [
   'kick',
@@ -69,6 +70,26 @@ const tools: Anthropic.Tool[] = [
 ];
 
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rl = rateLimit(ip);
+  const rateHeaders = {
+    'X-RateLimit-Limit': String(rl.limit),
+    'X-RateLimit-Remaining': String(rl.remaining),
+    'X-RateLimit-Reset': String(Math.floor(rl.resetAt / 1000)),
+  };
+  if (!rl.allowed) {
+    const retryAfter = Math.ceil((rl.resetAt - Date.now()) / 1000);
+    return NextResponse.json(
+      {
+        error: `Rate limit exceeded — ${rl.limit} beats per day per IP. Try again in ${Math.ceil(retryAfter / 3600)}h.`,
+      },
+      {
+        status: 429,
+        headers: { ...rateHeaders, 'Retry-After': String(retryAfter) },
+      },
+    );
+  }
+
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
@@ -109,11 +130,11 @@ export async function POST(req: NextRequest) {
     if (!toolUse) {
       return NextResponse.json(
         { error: 'Model did not return a pattern' },
-        { status: 502 },
+        { status: 502, headers: rateHeaders },
       );
     }
 
-    return NextResponse.json(toolUse.input);
+    return NextResponse.json(toolUse.input, { headers: rateHeaders });
   } catch (error) {
     if (error instanceof Anthropic.AuthenticationError) {
       return NextResponse.json(
