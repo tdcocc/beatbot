@@ -153,19 +153,28 @@ export function useAudioEngine() {
     });
     if (!seq) return;
     try {
-      // Always do a clean stop first — guarantees a fresh start even when
-      // loadPattern + play() batch into a single render (patternNonce change).
-      seq.stop();
-      transport.stop();
-      // Flush any events the previous sequence left on the transport scheduler;
-      // otherwise ghost hits from the old pattern can fire after restart.
-      transport.cancel(0);
       if (isPlaying) {
+        // Start the sequence once, never re-start it — re-starting while
+        // stopping in the same tick races Tone's internal state machine and
+        // leaves the scheduler wedged (symptom: transport.state === 'started'
+        // but no step triggers fire).
+        if (seq.state !== 'started') {
+          seq.start(0);
+        }
+        // Jumping position to 0 while transport runs restarts at step 0 of
+        // whatever pattern is currently in state. No stop needed.
         transport.position = 0;
-        seq.start(0);
-        transport.start();
-        console.log('[beatbot] started', { transportState: transport.state });
+        if (transport.state !== 'started') {
+          transport.start();
+        }
+        console.log('[beatbot] started', {
+          seqState: seq.state,
+          transportState: transport.state,
+        });
       } else {
+        if (transport.state === 'started') {
+          transport.stop();
+        }
         console.log('[beatbot] stopped');
       }
     } catch (err) {
