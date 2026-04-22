@@ -17,6 +17,10 @@ type State = {
   currentStep: number;
   history: Edit[];
   future: Edit[];
+  // Increments every time loadPattern runs. Lets the audio engine force
+  // a clean seq.stop()+seq.start() restart even when React batches the
+  // loadPattern + play() state updates into a single render.
+  patternNonce: number;
 };
 
 type Actions = {
@@ -79,6 +83,7 @@ export const useSequencer = create<State & Actions>((set, get) => ({
   currentStep: 0,
   history: [],
   future: [],
+  patternNonce: 0,
 
   toggleStep: (trackId, stepIndex) => {
     const edit: Edit = { kind: 'toggleStep', trackId, stepIndex };
@@ -153,13 +158,14 @@ export const useSequencer = create<State & Actions>((set, get) => ({
           muted: false,
         },
     );
-    set({
+    set((s) => ({
       bpm: Math.max(40, Math.min(220, Math.round(bpm))),
       tracks: ordered,
       isPlaying: false,
       currentStep: 0,
       history: [],
       future: [],
-    });
+      patternNonce: s.patternNonce + 1,
+    }));
   },
 }));

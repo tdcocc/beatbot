@@ -77,6 +77,7 @@ export function useAudioEngine() {
 
   const isPlaying = useSequencer((s) => s.isPlaying);
   const bpm = useSequencer((s) => s.bpm);
+  const patternNonce = useSequencer((s) => s.patternNonce);
 
   useEffect(() => {
     const master = Tone.getDestination();
@@ -132,16 +133,17 @@ export function useAudioEngine() {
     const seq = sequenceRef.current;
     if (!seq) return;
     try {
+      // Always do a clean stop first — guarantees a fresh start even when
+      // loadPattern + play() batch into a single render (patternNonce change).
+      seq.stop();
+      transport.stop();
       if (isPlaying) {
         transport.position = 0;
         seq.start(0);
         transport.start();
-      } else {
-        seq.stop();
-        transport.stop();
       }
     } catch (err) {
       console.error('[beatbot] transport toggle failed', err);
     }
-  }, [isPlaying]);
+  }, [isPlaying, patternNonce]);
 }
