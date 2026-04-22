@@ -3,6 +3,20 @@
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Braun / Dieter Rams palette */
+  --color-bg: #c7c4b8;
+  --color-cream: #ede9dc;
+  --color-cream-soft: #e2ded0;
+  --color-cream-deep: #d4d0c1;
+  --color-ink: #2a2925;
+  --color-muted: #8c897f;
+  --color-divider: #b5b1a5;
+  --color-red: #c3372a;
+  --color-red-deep: #a52c20;
+  --color-amber: #d79833;
+  --color-lcd: #141310;
+  --color-lcd-text: #d7d3c1;
 }
 
 :root {
@@ -15,6 +29,34 @@ body {
 }
 
 body {
-  color: #18181b;
+  color: var(--color-ink);
   font-family: var(--font-sans), system-ui, sans-serif;
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      #d1cec2 0%,
+      var(--color-bg) 55%,
+      #bbb8ac 100%
+    );
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+/* Faint paper-grain noise over the page for that analog feel */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  z-index: 0;
+}
+
+/* Hide default webkit number input spinners */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }

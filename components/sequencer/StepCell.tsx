@@ -11,6 +11,7 @@ type Props = {
   active: boolean;
   isPlayhead: boolean;
   barBoundary: boolean;
+  beatBoundary: boolean;
 };
 
 export function StepCell({
@@ -19,6 +20,7 @@ export function StepCell({
   active,
   isPlayhead,
   barBoundary,
+  beatBoundary,
 }: Props) {
   const toggle = useSequencer((s) => s.toggleStep);
   const hit = active && isPlayhead;
@@ -32,22 +34,29 @@ export function StepCell({
     <button
       type="button"
       onClick={handleClick}
-      className={`group relative flex h-11 items-center justify-center ${
-        barBoundary ? 'border-l border-zinc-200/70' : ''
+      className={`group relative flex h-10 items-center justify-center touch-manipulation ${
+        barBoundary
+          ? 'border-l border-[color:var(--color-divider)]/70'
+          : beatBoundary
+            ? 'border-l border-[color:var(--color-divider)]/25'
+            : ''
       }`}
       aria-label={`Step ${stepIndex + 1}`}
       aria-pressed={active}
     >
       <motion.span
-        animate={hit ? { scale: [1, 1.2, 1] } : { scale: 1 }}
+        animate={hit ? { scale: [1, 1.25, 1] } : { scale: 1 }}
         transition={{ duration: 0.22, ease: 'easeOut' }}
         className={[
           'block rounded-full transition-colors duration-150',
           active
             ? hit
-              ? 'h-6 w-6 bg-rose-400 shadow-[0_0_14px_rgba(251,113,133,0.55)]'
-              : 'h-6 w-6 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.12)]'
-            : 'h-5 w-5 bg-zinc-100 group-hover:bg-zinc-200',
+              ? // playing hit: solid red LED with glow
+                'h-[14px] w-[14px] bg-[color:var(--color-red)] shadow-[0_0_10px_rgba(195,55,42,0.6),0_1px_0_rgba(0,0,0,0.15)_inset]'
+              : // toggled: cream button with subtle shadow
+                'h-[14px] w-[14px] bg-[color:var(--color-cream)] shadow-[0_1px_2px_rgba(0,0,0,0.15),0_0_0_1px_rgba(0,0,0,0.08)]'
+            : // inactive: tiny recessed dot
+              'h-[5px] w-[5px] bg-[color:var(--color-divider)] group-hover:h-[7px] group-hover:w-[7px] group-hover:bg-[color:var(--color-muted)]',
         ].join(' ')}
       />
     </button>
