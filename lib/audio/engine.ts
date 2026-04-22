@@ -135,6 +135,13 @@ export function useAudioEngine() {
   useEffect(() => {
     const transport = Tone.getTransport();
     const seq = sequenceRef.current;
+    console.log('[beatbot] effect fired', {
+      isPlaying,
+      patternNonce,
+      hasSeq: !!seq,
+      ctxState: Tone.getContext().state,
+      transportState: transport.state,
+    });
     if (!seq) return;
     try {
       // Always do a clean stop first — guarantees a fresh start even when
@@ -145,6 +152,9 @@ export function useAudioEngine() {
         transport.position = 0;
         seq.start(0);
         transport.start();
+        console.log('[beatbot] started', { transportState: transport.state });
+      } else {
+        console.log('[beatbot] stopped');
       }
     } catch (err) {
       console.error('[beatbot] transport toggle failed', err);

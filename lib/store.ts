@@ -106,8 +106,14 @@ export const useSequencer = create<State & Actions>((set, get) => ({
     });
   },
 
-  play: () => set({ isPlaying: true }),
-  stop: () => set({ isPlaying: false, currentStep: 0 }),
+  play: () => {
+    console.log('[beatbot] store.play');
+    set({ isPlaying: true });
+  },
+  stop: () => {
+    console.log('[beatbot] store.stop');
+    set({ isPlaying: false, currentStep: 0 });
+  },
   setCurrentStep: (step) => set({ currentStep: step }),
 
   undo: () => {
@@ -158,14 +164,18 @@ export const useSequencer = create<State & Actions>((set, get) => ({
           muted: false,
         },
     );
-    set((s) => ({
-      bpm: Math.max(40, Math.min(220, Math.round(bpm))),
-      tracks: ordered,
-      isPlaying: false,
-      currentStep: 0,
-      history: [],
-      future: [],
-      patternNonce: s.patternNonce + 1,
-    }));
+    set((s) => {
+      const next = {
+        bpm: Math.max(40, Math.min(220, Math.round(bpm))),
+        tracks: ordered,
+        isPlaying: false,
+        currentStep: 0,
+        history: [],
+        future: [],
+        patternNonce: s.patternNonce + 1,
+      };
+      console.log('[beatbot] store.loadPattern', { bpm: next.bpm, nonce: next.patternNonce });
+      return next;
+    });
   },
 }));
