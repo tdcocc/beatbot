@@ -6,7 +6,6 @@ import { useSequencer } from '../store';
 import { TOTAL_STEPS, TRACK_ORDER, TrackId } from '../types';
 import { createVoice, Voice } from './instruments';
 
-let audioStarted = false;
 let silentAudio: HTMLAudioElement | null = null;
 
 // iOS Safari routes Web Audio through the "ambient" audio session by default,
@@ -48,24 +47,29 @@ function createSilentAudio(): HTMLAudioElement {
 }
 
 export async function startAudio() {
-  if (audioStarted) return;
-
-  // Kick off the silent-audio unlock synchronously, inside the user gesture.
-  // Safe no-op on browsers that don't need it.
-  if (typeof window !== 'undefined' && !silentAudio) {
-    try {
-      silentAudio = createSilentAudio();
-      // Fire-and-forget: we don't await, iOS just needs play() to have been
-      // called during the gesture. Errors here (e.g. autoplay policy) are
-      // non-fatal — Tone.start() below is the real audio unlock.
+  // Called on every user gesture (play, stop, generate, cell tap). Must be
+  // idempotent and always re-resume the context — iOS Safari suspends the
+  // AudioContext in the background and after periods of inactivity.
+  if (typeof window !== 'undefined') {
+    // Silent-audio unlock (iOS silent switch bypass) — create once,
+    // keep playing.
+    if (!silentAudio) {
+      try {
+        silentAudio = createSilentAudio();
+      } catch {
+        // not critical
+      }
+    }
+    if (silentAudio && silentAudio.paused) {
       void silentAudio.play().catch(() => {});
-    } catch {
-      // Ignore; not critical.
     }
   }
 
+  // Tone.start() is idempotent: if the context is already running this is
+  // a no-op; if it was suspended (iOS backgrounding, page hidden, etc.)
+  // this re-resumes it within the user gesture.
   await Tone.start();
-  audioStarted = true;
+
   if (typeof window !== 'undefined') {
     (window as unknown as { __Tone?: typeof Tone }).__Tone = Tone;
   }
