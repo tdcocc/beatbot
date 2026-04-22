@@ -107,11 +107,20 @@ export function useAudioEngine() {
     const seq = new Tone.Sequence<number>(
       (time, step) => {
         const state = useSequencer.getState();
+        let fired = 0;
         for (const track of state.tracks) {
           if (track.muted) continue;
           if (track.steps[step]) {
             voices.get(track.id)?.trigger(time, track.volume);
+            fired += 1;
           }
+        }
+        if (step === 0) {
+          console.log('[beatbot] step0', {
+            fired,
+            bpm: Tone.getTransport().bpm.value,
+            time: time.toFixed(3),
+          });
         }
         Tone.getDraw().schedule(() => {
           useSequencer.getState().setCurrentStep(step);
@@ -148,6 +157,9 @@ export function useAudioEngine() {
       // loadPattern + play() batch into a single render (patternNonce change).
       seq.stop();
       transport.stop();
+      // Flush any events the previous sequence left on the transport scheduler;
+      // otherwise ghost hits from the old pattern can fire after restart.
+      transport.cancel(0);
       if (isPlaying) {
         transport.position = 0;
         seq.start(0);
